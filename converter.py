@@ -1,6 +1,7 @@
 import base64
-import string
 import math
+import string
+import sys
 
 base = 15
 chars = "0123456789abcde"
@@ -42,6 +43,8 @@ def gengou2address(gengou):
 def address2gengou(address):
     if (type(address) != str or not address.startswith("0x") or len(address) != 42 or set(address) > set(string.ascii_lowercase + string.digits)):
         raise Exception("有効なEthereumのアドレスでありません")
+    if address.lower() != address:
+        raise Exception("小文字形式のEthereumアドレスに変換して入力してください")
     else:
         decoded_gengou = base_n_decode(
             address[2:].replace(padding_char, ""), base)
@@ -49,10 +52,28 @@ def address2gengou(address):
 
 
 def main():
-    s = input("投票する元号を入力してください：")
-    if not s:
-        raise Exception("元号をなくすことはできません")
-    print("次のアドレスにSZRISトークンを送付してください： " + gengou2address(s))
+    if len(sys.argv) == 2 and sys.argv[1] == "gengou2address":
+        s = input("投票する元号を入力してください：")
+        if not s:
+            raise Exception("元号をなくすことはできません")
+        print("次のアドレスにSZRISトークンを送付してください： " + gengou2address(s))
+    elif len(sys.argv) == 2 and sys.argv[1] == "address2gengou":
+        s = input("投票先をチェックしたいアドレスを入力してください：")
+        if not s:
+            raise Exception("有効なEthereumのアドレスを入力してください")
+        try:
+            print("このアカウントは次の元号に対応しています： " + address2gengou(s))
+        except UnicodeDecodeError as e:
+            print("このアカウントは投票先でありません")
+        except Exception as e:
+            raise e
+
+    else:
+        print("""
+アドレスを元号に変換する場合：　python3 converter.py address2gengou
+元号をアドレスに変換する場合：　python3 converter.py gengou2address
+*環境によってはpythonコマンドがpython3コマンドと同等の場合があります
+        """)
 
 
 if __name__ == '__main__':
